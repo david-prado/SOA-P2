@@ -1,3 +1,6 @@
+/*Este cliente recibe el nombre del servidor y 
+el puerto para hacer la compunicacion y envia un mensaje menor a 256 caracteres, que se despliega en el servidor*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
