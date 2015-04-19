@@ -5,7 +5,7 @@
 
 void requestHandler(int cliSock){
 	handleHttpRequest(cliSock);
-	//closeWriteSock(cliSock);
+	closeWriteSock(cliSock);
 }
 
 int main(int argc, char *argv[]) {
@@ -19,5 +19,3 @@ int main(int argc, char *argv[]) {
 
 	return 0;
 }
-
-
