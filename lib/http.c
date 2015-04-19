@@ -73,7 +73,6 @@ void httpReply(int cliSock, const char *uri){
 				"Connection: close\n\n404 Not Found",date);
 		write(cliSock,header,strlen(header));
 	}
-	close(cliSock);
 }
 
 int getRequest(int serverSock, char * uri){
