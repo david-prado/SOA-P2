@@ -1,0 +1,1 @@
+forked.d: ../forked.c
