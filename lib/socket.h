@@ -8,6 +8,7 @@
 #ifndef SOCKETS_H_
 #define SOCKETS_H_
 
+int tcpListen(int srvPort);
 void startServer(int port, void (*requestHandler)(int clientSock));
 void closeWriteSock(int sock);
 

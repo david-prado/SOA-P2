@@ -8,13 +8,13 @@
 #include "error.h"
 #include "socket.h"
 
-void startServer(int srvPort, void (*requestHandler)(int cliSock)) {
+int tcpListen(int srvPort) {
 	int srvSock, cliSock;
 	socklen_t cliLen;
 	struct sockaddr_in srvAddr, cliAddr;
 
 	if (srvPort < 0)
-		exitError("ERROR: port number not provided\n",1);
+		exitError("ERROR: port number not provided\n", 1);
 
 	//Create a socket
 	srvSock = socket(AF_INET, SOCK_STREAM, 0);
@@ -32,17 +32,8 @@ void startServer(int srvPort, void (*requestHandler)(int cliSock)) {
 		exitError("ERROR: could not bind socket to specified address\n", 1);
 
 	listen(srvSock, 10);
-	cliLen = sizeof(cliAddr);
 
-	while (1) {
-		cliSock = accept(srvSock, (struct sockaddr *) &cliAddr, &cliLen);
-		if (cliSock < 0)
-			exitError("ERROR: could not accept incoming connection\n", 1);
-
-		requestHandler(cliSock);
-	}
-
-	close(srvSock);
+	return srvSock;
 }
 
 void closeWriteSock(int sock){

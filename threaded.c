@@ -5,43 +5,34 @@
 #include "lib/socket.h"
 
 void * thread_start(void * args){
-	int *cliSock = (int *) args;
-	handleHttpRequest(*cliSock);
-	closeWriteSock(*cliSock);
-	return 0;
-}
-
-void requestHandler(int cliSock){
-	pthread_attr_t attr;
-	pthread_t thread_id;
-	int s;
-
-	s = pthread_attr_init(&attr);
-	if (s != 0)
-		exitError("ERROR: pthread_attr_init", 1);
-
-	s = pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED);
-	if (s != 0)
-		exitError("ERROR: pthread_attr_setdetachstate", 1);
-
-	s = pthread_create(&thread_id, &attr, &thread_start, &cliSock);
-	if (s != 0)
-		exitError("ERROR: pthread_create",1);
-
-	s = pthread_attr_destroy(&attr);
-	if (s != 0)
-		exitError("ERROR: pthread_attr_destroy",1);
-
+	int cliSock = *((int *) args);
+	free(args);
+	pthread_detach(pthread_self());
+	handleHttpRequest(cliSock);
+	//closeWriteSock(cliSock);
+	close(cliSock);
+	return NULL;
 }
 
 int main(int argc, char *argv[]) {
-	int srvPort;
+	int srvSock, *cliSock;
+	pthread_t thread_id;
 
 	if (argc < 2)
 		exitError("ERROR: port number not provided\n",1);
 
-	srvPort = atoi(argv[1]);
-	startServer(srvPort,&requestHandler);
+	srvSock = tcpListen(atoi(argv[1]));
 
+	while (1) {
+		cliSock = malloc(sizeof(int));
+		*cliSock = accept(srvSock, NULL, NULL);
+		if (*cliSock == -1)
+			exitError("ERROR: could not accept incoming connection\n", 1);
+
+		if (pthread_create(&thread_id, NULL, &thread_start, (void *) cliSock))
+			exitError("ERROR: pthread_create",1);
+	}
+
+	close(srvSock);
 	return 0;
 }

@@ -30,11 +30,10 @@ int handleHttpRequest(int cliSock){
 			uri++;
 	version = strtok(NULL," ");
 
-	if(strcmp(request,"GET")==0){
+	if(strcmp(request,"GET")==0)
 		httpReply(cliSock,uri);
-	}else{
+	else
 		error("ERROR: invalid HTTP GET request");
-	}
 
 	return 0;
 }
@@ -83,7 +82,6 @@ int getRequest(int serverSock, char * uri){
 
 	return 0;
 }
-
 
 void getDate(char *outstr, size_t len){
     time_t t;

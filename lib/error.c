@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 #include "error.h"
 
 void exitError(const char *msg, int err) {
