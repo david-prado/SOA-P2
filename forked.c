@@ -1,5 +1,3 @@
-#include <stdlib.h>
-#include <unistd.h>
 #include <signal.h>
 #include "lib/error.h"
 #include "lib/http.h"
@@ -11,7 +9,7 @@ int main(int argc, char *argv[]) {
 	if (argc < 2)
 		exitError("ERROR: port number not provided\n",1);
 
-	srvSock = tcpListen(atoi(argv[1]));
+	srvSock = tcpListen(argv[1]);
 	signal(SIGCHLD, SIG_IGN);
 
 	//cliLen = sizeof(cliAddr);

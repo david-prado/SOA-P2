@@ -1,5 +1,4 @@
 #include <pthread.h>
-#include <stdlib.h>
 #include "lib/error.h"
 #include "lib/http.h"
 #include "lib/socket.h"
@@ -9,8 +8,7 @@ void * thread_start(void * args){
 	free(args);
 	pthread_detach(pthread_self());
 	handleHttpRequest(cliSock);
-	//closeWriteSock(cliSock);
-	close(cliSock);
+	closeWriteSock(cliSock);
 	return NULL;
 }
 
@@ -21,7 +19,7 @@ int main(int argc, char *argv[]) {
 	if (argc < 2)
 		exitError("ERROR: port number not provided\n",1);
 
-	srvSock = tcpListen(atoi(argv[1]));
+	srvSock = tcpListen(argv[1]);
 
 	while (1) {
 		cliSock = malloc(sizeof(int));

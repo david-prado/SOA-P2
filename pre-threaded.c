@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
 	if (argc < 3)
 		exitError("Usage: pre-threaded <port#> <thread#>\n", 1);
 
-	srvSock = tcpListen(atoi(argv[1]));
+	srvSock = tcpListen(argv[1]);
 	nthreads = atoi(argv[2]);
 
 	for (i = 0; i < nthreads; i++) {

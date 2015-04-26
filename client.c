@@ -1,52 +1,74 @@
-#include <stdio.h>
+#include <pthread.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include "lib/error/error.h"
+#include <signal.h>
+#include "lib/error.h"
+#include "lib/http.h"
+#include "lib/socket.h"
 
-int main(int argc, char *argv[])
-{
-    int sockfd, portno, n;
-    struct sockaddr_in serv_addr;
-    struct hostent *server;
+void sig_int(int signo);
+void * thread_start(void * args);
 
-    char buffer[256];
-    if (argc < 3) {
-       fprintf(stderr,"Usage: %s hostname port\n", argv[0]);
-       exit(0);
-    }
-    portno = atoi(argv[2]);
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0)
-        exitError("ERROR: could not open socket",1);
-    server = gethostbyname(argv[1]);
-    if (server == NULL)
-        exitError("ERROR: no such host",1);
+struct params{
+	char *hostname;
+	char *port;
+	char *file;
+	int nCicles;
+};
 
-    bzero((char *) &serv_addr, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    bcopy((char *)server->h_addr,
-         (char *)&serv_addr.sin_addr.s_addr,
-         server->h_length);
-    serv_addr.sin_port = htons(portno);
-    if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
-        exitError("ERROR: could not connect to server",1);
+int main(int argc, char *argv[]){
+    int nThreads, n;
+    pthread_t *tid;
+    struct params tParams;
 
-    printf("Please enter the message: ");
-    bzero(buffer,256);
-    fgets(buffer,255,stdin);
-    n = write(sockfd,buffer,strlen(buffer));
-    if (n < 0)
-         exitError("ERROR: could not write to socket",1);
-    bzero(buffer,256);
-    n = read(sockfd,buffer,255);
-    if (n < 0)
-         exitError("ERROR: could not read from socket",1);
-    printf("%s\n",buffer);
-    close(sockfd);
+    if (argc < 6)
+       exitError("Usage: client <hostname|IP> <port#> <file> <N-threads> <N-cicles>\n", 1);
+
+    tParams.hostname = argv[1];
+    tParams.port = argv[2];
+    tParams.file = argv[3];
+    nThreads = atoi(argv[4]);
+    tParams.nCicles = atoi(argv[5]);
+    tid = calloc(nThreads,sizeof(pthread_t));
+
+	for (n = 0; n < nThreads; n++) {
+		if (pthread_create(&tid[n], NULL, &thread_start, (void *) &tParams))
+			exitError("ERROR: pthread_create", 1);
+	}
+
+	signal(SIGINT, sig_int);
+
+	for (n=0;n<nThreads;n++)
+		pthread_join(tid[n], NULL);
+
+	free(tid);
     return 0;
 }
+
+void * thread_start(void * args) {
+	int sock,n;
+	struct params *tParams;
+
+	tParams = ((struct params *)args);
+
+    for(n=0;n<(tParams->nCicles);n++){
+    	sock = tcpConnect(tParams->hostname,tParams->port);
+    	httpGet(sock,tParams->file);
+    	close(sock);
+    }
+
+	pthread_exit(0);
+}
+
+void sig_int(int signo) {
+	int i;
+	//void pr_cpu_time(void);
+
+	//pr_cpu_time();
+
+	//for (i = 0; i < nthreads; i++)
+		//printf("thread %d, %ld connections\n", i, tptr[i].thread_count);
+
+	exit(0);
+}
+
+

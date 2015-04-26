@@ -12,7 +12,9 @@ int handleHttpRequest(int clientSock);
 
 void httpReply(int clientSock, const char *uri);
 
-int httpGet(int serverSock, char * resource);
+void httpGet(int serverSock, char * resource);
+
+void handleHttpResponse(int srvSock);
 
 void getDate();
 

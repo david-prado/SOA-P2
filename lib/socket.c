@@ -1,39 +1,94 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include "error.h"
 #include "socket.h"
 
-int tcpListen(int srvPort) {
-	int srvSock, cliSock;
-	socklen_t cliLen;
-	struct sockaddr_in srvAddr, cliAddr;
+int tcpListen(char* port) {
+    struct addrinfo hints;
+	struct addrinfo *result, *rp;
+	int sfd, s;
 
-	if (srvPort < 0)
-		exitError("ERROR: port number not provided\n", 1);
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family = AF_UNSPEC; /* Allow IPv4 or IPv6 */
+	hints.ai_socktype = SOCK_STREAM; /* TCP socket */
+	hints.ai_flags = AI_PASSIVE; /* For wildcard IP address */
+	hints.ai_protocol = 0; /* Any protocol */
+	hints.ai_canonname = NULL;
+	hints.ai_addr = NULL;
+	hints.ai_next = NULL;
 
-	//Create a socket
-	srvSock = socket(AF_INET, SOCK_STREAM, 0);
-	if (srvSock < 0)
-		exitError("ERROR: could not open socket\n", 1);
+	s = getaddrinfo(NULL, port, &hints, &result);
+	if (s != 0) {
+		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
+		exit(EXIT_FAILURE);
+	}
 
-	// Setup the sockaddr_in before bind()
-	bzero((char *) &srvAddr, sizeof(srvAddr));
-	srvAddr.sin_family = AF_INET;
-	srvAddr.sin_addr.s_addr = INADDR_ANY;
-	srvAddr.sin_port = htons(srvPort);
+	/* getaddrinfo() returns a list of address structures.
+	 Try each address until we successfully bind(2).
+	 If socket(2) (or bind(2)) fails, we (close the socket
+	 and) try the next address. */
 
-	//Bind the socket to a "well-known" address
-	if (bind(srvSock, (struct sockaddr *) &srvAddr, sizeof(srvAddr)) < 0)
-		exitError("ERROR: could not bind socket to specified address\n", 1);
+	for (rp = result; rp != NULL; rp = rp->ai_next) {
+		sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+		if (sfd == -1)
+			continue;
 
-	listen(srvSock, 10);
+		if (bind(sfd, rp->ai_addr, rp->ai_addrlen) == 0)
+			break; /* Success */
 
-	return srvSock;
+		close(sfd);
+	}
+
+	if (rp == NULL) { /* No address succeeded */
+		fprintf(stderr, "Could not bind\n");
+		exit(EXIT_FAILURE);
+	}
+
+	freeaddrinfo(result); /* No longer needed */
+
+	listen(sfd, 10);
+
+	return sfd;
+}
+
+int tcpConnect(char* hostname, char* port){
+    struct addrinfo hints, *result, *rp;
+    int sfd, s;
+
+    /* Obtain address(es) matching host/port */
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_UNSPEC;    /* Allow IPv4 or IPv6 */
+    hints.ai_socktype = SOCK_STREAM; /* TCP socket */
+    hints.ai_flags = 0;
+    hints.ai_protocol = 0;          /* Any protocol */
+
+    s = getaddrinfo(hostname, port, &hints, &result);
+    if (s != 0) {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
+        exit(EXIT_FAILURE);
+    }
+
+    /* getaddrinfo() returns a list of address structures.
+       Try each address until we successfully connect(2).
+       If socket(2) (or connect(2)) fails, we (close the socket
+       and) try the next address. */
+
+    for (rp = result; rp != NULL; rp = rp->ai_next) {
+        sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (sfd == -1)
+            continue;
+
+        if (connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1)
+            break;                  /* Success */
+
+        close(sfd);
+    }
+
+    if (rp == NULL) {               /* No address succeeded */
+        fprintf(stderr, "Could not connect\n");
+        exit(EXIT_FAILURE);
+    }
+
+    freeaddrinfo(result);           /* No longer needed */
+    return sfd;
 }
 
 void closeWriteSock(int sock){

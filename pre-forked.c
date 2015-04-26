@@ -1,11 +1,7 @@
-#include <stdlib.h>
-#include <unistd.h>
 #include <signal.h>
 #include "lib/error.h"
 #include "lib/http.h"
 #include "lib/socket.h"
-
-void sigInt(int signo);
 
 static int nchildren;
 static pid_t *pids;
@@ -17,7 +13,7 @@ int main(int argc, char *argv[]) {
 	if (argc < 3)
 		exitError("Usage: pre-forked <port#> <#children>\n",1);
 
-	srvSock = tcpListen(atoi(argv[1]));
+	srvSock = tcpListen(argv[1]);
 	nchildren = atoi(argv[2]);
 	pids = calloc(nchildren, sizeof(pid_t));
 
@@ -36,7 +32,6 @@ int main(int argc, char *argv[]) {
 
 					handleHttpRequest(cliSock);
 					closeWriteSock(cliSock);
-					//close(cliSock);
 				}
 				close(srvSock);
 				exit(EXIT_SUCCESS);
@@ -48,11 +43,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	close(srvSock);
-
-	signal(SIGINT, sigInt);
-
-	for (;;)
-		pause();
 }
 
 void sigInt(int signo) {

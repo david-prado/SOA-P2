@@ -74,13 +74,53 @@ void httpReply(int cliSock, const char *uri){
 	}
 }
 
-int getRequest(int serverSock, char * uri){
+void httpGet(int srvSock, char * file){
+	ssize_t wr, wrTot;
 	char request[2048];
-	strcpy(request,"GET ");
-	strcat(request,uri);
-	strcat(request," HTTP/1.1\n");//strcat adds terminating null byte. See strcat(3)
+	snprintf(request, sizeof(request), "GET /%s HTTP/1.1\n", file);
 
-	return 0;
+	printf("Request = %s",request);
+
+	wrTot = 0;
+	while(wrTot < strlen(request)){
+		wr = write(srvSock+wrTot, request, strlen(request)-wrTot);
+		if(wr==-1)
+			exitError("ERROR: could not write to socket",1);
+		wrTot += wr;
+	}
+
+	handleHttpResponse(srvSock);
+}
+
+void handleHttpResponse(int srvSock){
+	char buffer[2048];
+	char *version,*strCode;
+	int intCode, n;
+
+	//Read response
+	n = readLine(srvSock, buffer, sizeof(buffer));
+	if (n < 0)
+		exitError("ERROR: could not read from socket",1);
+	else if (n==0)
+		exitError("ERROR: invalid HTTP GET response",1);
+
+	printf("Status Line = %s",buffer);
+
+	version = strtok(buffer," ");
+	intCode = atoi(strtok(NULL," "));
+	strCode = strtok(NULL," ");
+
+	if(strcmp(strCode,"OK\n")!=0){
+		printf("ERROR: HTTP Response Code = %d",intCode);
+		exit(EXIT_FAILURE);
+	}
+	else{
+		do{
+			n = read(srvSock,buffer,sizeof(buffer));
+			if(n==-1)
+				exitError("ERROR: could not read from socket",1);
+		}while(n!=0);
+	}
 }
 
 void getDate(char *outstr, size_t len){
