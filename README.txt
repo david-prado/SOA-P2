@@ -35,7 +35,7 @@ El siguiente folder incluye las siguientes librerias
   2. http: manaja, la envia y recepcion del request.
   3. socket: abre, cierra, conecta, cliente y servidore por medio de la red y el puerto. 
   4. stat:
-  5. read_line:
+  5. read_line:simplemente lee caracteres desde un filedescriptor, hasta que encuentra una nueva linea \n.
   6. pr_cpu_time: ayuda con la recoleccion y presentacion de las estadisticas.
 
 Como Usarlo
@@ -53,18 +53,48 @@ Se ejecuta en el siguiente orden
 
 client 
 
-  programa <Ip Address> <puerto> <Archivo> <N-threads> <N-ciclos>
+  	Ejecutable <Ip Address> <puerto> <Archivo> <N-threads> <N-ciclos>
 	./client 192.168.137.220 2015 1000M.jpg 5 100 
 
+Este comando realiza la coneccion al servidor que tenga el Ip Address y Puerto de los parametros, pidiendo el archivo que tiene que estar en el servidor
+en un orden de N-threads y N-ciclos para cada thread 
+
 servers sin pre
+	Ejecutable <puerto>
+	./secuential 2015
+	./forked 2016
+	./threaded 2017
+
 
 servers con pre
+	Ejecutable <puerto> <N-threads>
+	./pre-threaded 2018 4
+	./pre-forked 2019 4
+
+Todos los parametros deben estar separados por espacios, ademas si un servidor toma un puerto, y se inicia otro servidor con el mismo puerto
+no se puede realizar la coneccion y da un error.
+
+Durante la ejecucion los servidores imprimen cierta informacion, como la creacion de child o thread dependiendo del tipo de serverdor, 
+durante este manejando pedidos termina el pedido que queda en espera para el siguiente pedido, al ser finalizado despliega estadisticas de todo el tiempo funcional. 
+Si finalizas un server en media ejecucion de un pedido, se caera la coneccion del cliente
+
+forked
+Forked new worker process with pid ####
+worker process wirh pid #### terminated with status ###
+
+threaded 
+
+pre-forked
+child ### starting
+
+estadisticas 
+user time = 0.00#, sys time = 0.0##
 
 
-
-
+En el momento de ejecucion de cliente este mostrar 
 	
-
+client 
+New client thread started 
 
 
 
