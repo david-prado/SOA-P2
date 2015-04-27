@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <stdio.h>
-#include <sys/time.h>
+#include <time.h>
 #include <sys/resource.h>
 #include "lib/error.h"
 #include "lib/http.h"
