@@ -19,13 +19,13 @@ struct params{
 	int nCicles;
 };
 
+static struct params tParams;
 struct timeval start;
 struct timeval end;
 
 int main(int argc, char *argv[]){
-    int nThreads, n;
+    int nThreads, n, *tnum;
     pthread_t *tid;
-    struct params tParams;
 
     if (argc < 6)
        exitError("Usage: client <hostname|IP> <port#> <file> <N-threads> <N-cicles>\n", 1);
@@ -41,7 +41,9 @@ int main(int argc, char *argv[]){
     	exitError("ERROR: could not get time",1);
 
 	for (n = 0; n < nThreads; n++) {
-		if (pthread_create(&tid[n], NULL, &thread_start, (void *) &tParams))
+		tnum = malloc(sizeof(int));
+		*tnum = n;
+		if (pthread_create(&tid[n], NULL, &thread_start, (void *) tnum))
 			exitError("ERROR: pthread_create", 1);
 	}
 
@@ -59,18 +61,19 @@ int main(int argc, char *argv[]){
 }
 
 void * thread_start(void * args) {
-	int sock,n;
-	struct params *tParams;
+	int sock,n, tnum;
 
-	printf("New client thread started\n");
+	tnum = *((int *)args);
+	free(args);
+	printf("Client thread %d started\n",tnum);
 
-	tParams = ((struct params *)args);
-
-    for(n=0;n<(tParams->nCicles);n++){
-    	sock = tcpConnect(tParams->hostname,tParams->port);
-    	httpGet(sock,tParams->file);
+    for(n=0;n<(tParams.nCicles);n++){
+    	sock = tcpConnect(tParams.hostname,tParams.port);
+    	httpGet(sock,tParams.file);
     	close(sock);
     }
+
+    printf("Client thread %d terminated\n",tnum);
 
 	pthread_exit(0);
 }
