@@ -44,7 +44,7 @@ int tcpListen(char* port) {
 
 	freeaddrinfo(result); /* No longer needed */
 
-	listen(sfd, 10);
+	listen(sfd, 128);
 
 	return sfd;
 }

@@ -3,7 +3,10 @@
 #include "error.h"
 
 void exitError(const char *msg, int err) {
-	perror(msg);
+	if(errno != 0)
+		perror(msg);
+	else
+		fprintf(stderr,"%s",msg);
 	exit(err);
 }
 

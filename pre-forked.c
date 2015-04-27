@@ -5,6 +5,7 @@
 #include "lib/socket.h"
 
 void sig_int(int);
+void sig_chld(int);
 void pr_cpu_time(void);
 
 static int nchildren;
@@ -29,7 +30,6 @@ int main(int argc, char *argv[]) {
 				exitError("ERROR: could not fork child process", 1);
 				break;
 			case 0:
-				printf("Child %ld starting\n", (long) getpid());
 				while (1) {
 					cliSock = accept(srvSock, NULL, NULL);
 					if (cliSock == -1)
@@ -38,18 +38,18 @@ int main(int argc, char *argv[]) {
 					handleHttpRequest(cliSock);
 					closeWriteSock(cliSock);
 				}
-				close(srvSock);
-				exit(EXIT_SUCCESS);
 				break;
 			default:
+				printf("Forked worked process %d with pid %d\n", i, tempPid);
 				pids[i] = tempPid;
 				break;
 		}
 	}
 
-	close(srvSock);
-
+	signal(SIGCHLD, sig_chld);
 	signal(SIGINT, sig_int);
+
+	close(srvSock);
 
 	for (;;)
 		pause();
@@ -67,4 +67,14 @@ void sig_int(int signo){
 
 	pr_cpu_time();
 	exit(0);
+}
+
+void sig_chld(int signo){
+	pid_t pid;
+	int stat;
+
+	while ((pid = waitpid(-1, &stat, WNOHANG)) > 0)
+		printf("Worker process with pid %d terminated with status %d\n", pid, stat);
+
+	return;
 }

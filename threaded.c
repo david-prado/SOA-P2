@@ -6,19 +6,12 @@
 #include "lib/socket.h"
 
 void sig_int(int);
+void * thread_start(void *);
 
-void * thread_start(void * args){
-	printf("New thread started\n");
-	int cliSock = *((int *) args);
-	free(args);
-	pthread_detach(pthread_self());
-	handleHttpRequest(cliSock);
-	closeWriteSock(cliSock);
-	return NULL;
-}
+static int srvSock;
 
 int main(int argc, char *argv[]) {
-	int srvSock, *cliSock;
+	int *cliSock;
 	pthread_t thread_id;
 
 	if (argc < 2)
@@ -40,6 +33,16 @@ int main(int argc, char *argv[]) {
 
 	close(srvSock);
 	return 0;
+}
+
+void * thread_start(void * args){
+	printf("Created new worker thread\n");
+	int cliSock = *((int *) args);
+	free(args);
+	pthread_detach(pthread_self());
+	handleHttpRequest(cliSock);
+	closeWriteSock(cliSock);
+	return NULL;
 }
 
 void sig_int(int signo){
