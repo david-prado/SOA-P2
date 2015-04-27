@@ -1,0 +1,16 @@
+all: forked.exe secuential.exe threaded.exe pre-forked.exe pre-threaded.exe
+
+forked.exe: forked.o
+	gcc forked.c lib/error.c lib/http.c lib/read_line.c lib/socket.c lib/cpu_time.c -o forked
+
+secuential.exe: secuential.o
+	gcc secuential.c lib/error.c lib/http.c lib/read_line.c lib/socket.c lib/cpu_time.c -o secuential
+
+threaded.exe: threaded.o
+	gcc threaded.c lib/error.c lib/http.c lib/read_line.c lib/socket.c lib/cpu_time.c -o threaded -pthread
+
+pre-threaded.exe: pre-threaded.o
+	gcc pre-threaded.c lib/error.c lib/http.c lib/read_line.c lib/socket.c lib/cpu_time.c -o pre-threaded -pthread
+
+pre-forked.exe: pre-forked.o
+	gcc pre-forked.c lib/error.c lib/http.c lib/read_line.c lib/socket.c lib/cpu_time.c -o pre-forked
