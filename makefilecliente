@@ -1,4 +1,0 @@
-all: client.exe 
-
-client.exe: client.o
-	gcc client.c lib/socket.c lib/error.c lib/http.c lib/read_line.c -o client -pthread

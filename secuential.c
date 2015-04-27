@@ -5,9 +5,12 @@
 #include "lib/socket.h"
 
 void sig_int(int);
+void pr_cpu_time(void);
+
+static int srvSock;
 
 int main(int argc, char *argv[]) {
-	int srvSock, cliSock;
+	int cliSock;
 
 	if (argc < 2)
 		exitError("ERROR: port number not provided\n",1);
@@ -23,13 +26,10 @@ int main(int argc, char *argv[]) {
 		handleHttpRequest(cliSock);
 		closeWriteSock(cliSock);
 	}
-
-	close(srvSock);
-	return 0;
 }
 
 void sig_int(int signo) {
-	void pr_cpu_time(void);
 	pr_cpu_time();
+	close(srvSock);
 	exit(0);
 }

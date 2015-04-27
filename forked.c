@@ -4,10 +4,15 @@
 #include "lib/http.h"
 #include "lib/socket.h"
 
-void sig_chld(int), sig_int(int);
+void sig_chld(int);
+void sig_int(int);
+void pr_cpu_time(void);
+
+static int srvSock;
 
 int main(int argc, char *argv[]) {
-	int srvSock, cliSock;
+	int cliSock;
+	pid_t pid;
 
 	if (argc < 2)
 		exitError("ERROR: port number not provided\n",1);
@@ -21,7 +26,8 @@ int main(int argc, char *argv[]) {
 		if (cliSock == -1)
 			exitError("ERROR: could not accept incoming connection\n", 1);
 
-		switch (fork()) {
+		pid=fork();
+		switch (pid) {
 			case -1:
 				close(cliSock);
 				close(srvSock);
@@ -34,17 +40,14 @@ int main(int argc, char *argv[]) {
 				exit(EXIT_SUCCESS);
 				break;
 			default:
+				printf("Forked new worker process with pid %d\n",pid);
 				close(cliSock);
 				break;
 		}
 	}
-
-	close(srvSock);
-	return 0;
 }
 
 void sig_int(int signo) {
-	void pr_cpu_time(void);
 	pr_cpu_time();
 	exit(0);
 }
@@ -54,8 +57,7 @@ void sig_chld(int signo) {
 	int stat;
 
 	while ((pid = waitpid(-1, &stat, WNOHANG)) > 0)
-		printf("child %d terminated\n", pid);
+		printf("Worker process with pid %d terminated with status %d\n", pid, stat);
 
 	return;
 }
-

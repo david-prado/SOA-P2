@@ -8,14 +8,14 @@
 
 #define	MAX_CLI	32
 
-void sig_int(int signo);
-void * thread_start(void * args);
+void pr_cpu_time(void);
+void sig_int(int);
+void * thread_start(void *);
 
 typedef struct {
   pthread_t		tid;		/* thread ID */
   long			nConn;		/* # connections handled */
 } Thread;
-
 
 int					cliSocks[MAX_CLI], cliGet, cliPut;
 pthread_mutex_t		cliMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -42,6 +42,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	signal(SIGINT, sig_int);
+
 	cliGet = cliPut = 0;
 	while(1){
 		cliSock = accept(srvSock, NULL,NULL);
@@ -64,7 +65,7 @@ void * thread_start(void * args) {
 	free(args);
 
 	pthread_detach(pthread_self());
-	printf("Thread %d starting\n", tNum);
+	printf("Pre-created worker thread %d\n", tNum);
 
 	while(1){
     	pthread_mutex_lock(&cliMutex);
@@ -85,13 +86,12 @@ void * thread_start(void * args) {
 /* end serv08 */
 
 void sig_int(int signo){
-	int		i;
-	void	pr_cpu_time(void);
+	int	i;
 
 	pr_cpu_time();
 
 	for (i = 0; i < nThreads; i++)
-		printf("thread %d, %ld connections\n", i, threads[i].nConn);
+		printf("Worker thread %d, handled %ld connections\n", i, threads[i].nConn);
 
 	exit(0);
 }

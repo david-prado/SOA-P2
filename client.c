@@ -84,13 +84,11 @@ void printStats(){
 	double user, sys, elapsed;
 	struct rusage myusage;
 
-
 	if (getrusage(RUSAGE_SELF, &myusage) < 0)
 		exitError("ERROR: could not get resource usage",1);
 
 	user = (double) myusage.ru_utime.tv_sec + myusage.ru_utime.tv_usec/1000000.0;
 	sys = (double) myusage.ru_stime.tv_sec + myusage.ru_stime.tv_usec/1000000.0;
-
 	elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec-start.tv_nsec)/1000000000.0;
 
 	printf("### STATISTICS ###\n");
@@ -98,5 +96,3 @@ void printStats(){
 	printf("System CPU time = %g\n", sys);
 	printf("Elapsed time = %g\n", elapsed);
 }
-
-

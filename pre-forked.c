@@ -5,6 +5,7 @@
 #include "lib/socket.h"
 
 void sig_int(int);
+void pr_cpu_time(void);
 
 static int nchildren;
 static pid_t *pids;
@@ -54,16 +55,12 @@ int main(int argc, char *argv[]) {
 		pause();
 }
 
-void
-sig_int(int signo)
-{
-	int		i;
-	void	pr_cpu_time(void);
+void sig_int(int signo){
+	int i;
 
-		/* 4terminate all children */
 	for (i = 0; i < nchildren; i++)
 		kill(pids[i], SIGTERM);
-	while (wait(NULL) > 0)		/* wait for all children */
+	while (wait(NULL) > 0)
 		;
 	if (errno != ECHILD)
 		exitError("ERROR: could not wait for child",1);
