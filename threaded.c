@@ -1,9 +1,14 @@
 #include <pthread.h>
+#include <signal.h>
+#include <stdio.h>
 #include "lib/error.h"
 #include "lib/http.h"
 #include "lib/socket.h"
 
+void sig_int(int);
+
 void * thread_start(void * args){
+	printf("New thread started\n");
 	int cliSock = *((int *) args);
 	free(args);
 	pthread_detach(pthread_self());
@@ -21,6 +26,8 @@ int main(int argc, char *argv[]) {
 
 	srvSock = tcpListen(argv[1]);
 
+	signal(SIGINT, sig_int);
+
 	while (1) {
 		cliSock = malloc(sizeof(int));
 		*cliSock = accept(srvSock, NULL, NULL);
@@ -33,4 +40,11 @@ int main(int argc, char *argv[]) {
 
 	close(srvSock);
 	return 0;
+}
+
+void sig_int(int signo){
+    void    pr_cpu_time(void);
+
+    pr_cpu_time();
+    exit(0);
 }

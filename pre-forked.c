@@ -1,7 +1,10 @@
 #include <signal.h>
+#include <stdio.h>
 #include "lib/error.h"
 #include "lib/http.h"
 #include "lib/socket.h"
+
+void sig_int(int);
 
 static int nchildren;
 static pid_t *pids;
@@ -25,6 +28,7 @@ int main(int argc, char *argv[]) {
 				exitError("ERROR: could not fork child process", 1);
 				break;
 			case 0:
+				printf("Child %ld starting\n", (long) getpid());
 				while (1) {
 					cliSock = accept(srvSock, NULL, NULL);
 					if (cliSock == -1)
@@ -43,17 +47,27 @@ int main(int argc, char *argv[]) {
 	}
 
 	close(srvSock);
+
+	signal(SIGINT, sig_int);
+
+	for (;;)
+		pause();
 }
 
-void sigInt(int signo) {
-	int i;
+void
+sig_int(int signo)
+{
+	int		i;
+	void	pr_cpu_time(void);
 
+		/* 4terminate all children */
 	for (i = 0; i < nchildren; i++)
 		kill(pids[i], SIGTERM);
-	while (wait(NULL) > 0)
+	while (wait(NULL) > 0)		/* wait for all children */
 		;
 	if (errno != ECHILD)
 		exitError("ERROR: could not wait for child",1);
 
+	pr_cpu_time();
 	exit(0);
 }

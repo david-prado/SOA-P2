@@ -1,7 +1,10 @@
 #include <signal.h>
+#include <stdio.h>
 #include "lib/error.h"
 #include "lib/http.h"
 #include "lib/socket.h"
+
+void sig_chld(int), sig_int(int);
 
 int main(int argc, char *argv[]) {
 	int srvSock, cliSock;
@@ -10,11 +13,10 @@ int main(int argc, char *argv[]) {
 		exitError("ERROR: port number not provided\n",1);
 
 	srvSock = tcpListen(argv[1]);
-	signal(SIGCHLD, SIG_IGN);
+	signal(SIGCHLD, sig_chld);
+	signal(SIGINT, sig_int);
 
-	//cliLen = sizeof(cliAddr);
 	while (1) {
-		//cliSock = accept(srvSock, (struct sockaddr *) &cliAddr, &cliLen);
 		cliSock = accept(srvSock, NULL, NULL);
 		if (cliSock == -1)
 			exitError("ERROR: could not accept incoming connection\n", 1);
@@ -40,3 +42,20 @@ int main(int argc, char *argv[]) {
 	close(srvSock);
 	return 0;
 }
+
+void sig_int(int signo) {
+	void pr_cpu_time(void);
+	pr_cpu_time();
+	exit(0);
+}
+
+void sig_chld(int signo) {
+	pid_t pid;
+	int stat;
+
+	while ((pid = waitpid(-1, &stat, WNOHANG)) > 0)
+		printf("child %d terminated\n", pid);
+
+	return;
+}
+

@@ -79,8 +79,6 @@ void httpGet(int srvSock, char * file){
 	char request[2048];
 	snprintf(request, sizeof(request), "GET /%s HTTP/1.1\n", file);
 
-	printf("Request = %s",request);
-
 	wrTot = 0;
 	while(wrTot < strlen(request)){
 		wr = write(srvSock+wrTot, request, strlen(request)-wrTot);
@@ -103,8 +101,6 @@ void handleHttpResponse(int srvSock){
 		exitError("ERROR: could not read from socket",1);
 	else if (n==0)
 		exitError("ERROR: invalid HTTP GET response",1);
-
-	printf("Status Line = %s",buffer);
 
 	version = strtok(buffer," ");
 	intCode = atoi(strtok(NULL," "));
