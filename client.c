@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <stdio.h>
-#include <time.h>
+#include <sys/time.h>
 #include <sys/resource.h>
 #include "lib/error.h"
 #include "lib/http.h"
@@ -19,8 +19,8 @@ struct params{
 	int nCicles;
 };
 
-struct timespec start;
-struct timespec end;
+struct timeval start;
+struct timeval end;
 
 int main(int argc, char *argv[]){
     int nThreads, n;
@@ -37,7 +37,7 @@ int main(int argc, char *argv[]){
     tParams.nCicles = atoi(argv[5]);
     tid = calloc(nThreads,sizeof(pthread_t));
 
-    if(clock_gettime(CLOCK_REALTIME, &start)==-1)
+    if(gettimeofday(&start, NULL)==-1)
     	exitError("ERROR: could not get time",1);
 
 	for (n = 0; n < nThreads; n++) {
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]){
 	for (n=0;n<nThreads;n++)
 		pthread_join(tid[n], NULL);
 
-	if(clock_gettime(CLOCK_REALTIME, &end)==-1)
+	if(gettimeofday(&end,NULL)==-1)
     	exitError("ERROR: could not get time",1);
 
 	printStats();
@@ -89,7 +89,7 @@ void printStats(){
 
 	user = (double) myusage.ru_utime.tv_sec + myusage.ru_utime.tv_usec/1000000.0;
 	sys = (double) myusage.ru_stime.tv_sec + myusage.ru_stime.tv_usec/1000000.0;
-	elapsed = (end.tv_sec - start.tv_sec) + (end.tv_nsec-start.tv_nsec)/1000000000.0;
+	elapsed = (end.tv_sec - start.tv_sec) + (end.tv_usec-start.tv_usec)/1000000.0;
 
 	printf("### STATISTICS ###\n");
 	printf("User CPU time = %g\n", user);
