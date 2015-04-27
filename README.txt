@@ -78,14 +78,27 @@ Durante la ejecucion los servidores imprimen cierta informacion, como la creacio
 durante este manejando pedidos termina el pedido que queda en espera para el siguiente pedido, al ser finalizado despliega estadisticas de todo el tiempo funcional. 
 Si finalizas un server en media ejecucion de un pedido, se caera la coneccion del cliente
 
+conecciones= Nthreads X Nciclos
+
 forked
 Forked new worker process with pid ####
 worker process wirh pid #### terminated with status ###
+/*uno para cada coneccion
 
 threaded 
+created new worker thread
+/*uno para cada coneccion
 
 pre-forked
-child ### starting
+Forked worked process # with pid ###
+/* creara cuantos se haya definido en el momento de ejecucion 
+
+pre-threaded
+Pre-created worker thread #
+/* creara cuantos se haya definido en el momento de ejecucion 
+/*al finalizar muestra 
+worker thread #, handled i# connections /*
+i# siendo el numero de conecciones manejada por cada thread,
 
 estadisticas 
 user time = 0.00#, sys time = 0.0##
@@ -94,7 +107,12 @@ user time = 0.00#, sys time = 0.0##
 En el momento de ejecucion de cliente este mostrar 
 	
 client 
-New client thread started 
+New client thread started
 
+Estadisticas
+### STATISTICS ###
+User CPU time = 0.00# 
+System CPU time = 0.0##
+Eleapse time = 0.0#####
 
-
+Para finalizar cualquiera de los ejecutables en medio de la ejecucion, se utiliza el comando de Linux Ctrl C
